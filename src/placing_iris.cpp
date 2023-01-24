@@ -7,9 +7,10 @@ move it to a desired pose.
 
 /******************************************************* ROS libraries*/
 #include <ros/ros.h>
-#include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <mav_msgs/conversions.h>
+#include "tf/transform_datatypes.h"
 #include <geometry_msgs/PointStamped.h>
+#include <trajectory_msgs/MultiDOFJointTrajectory.h>
 
 /****************************************************** c++ libraries */
 #include <random>
@@ -25,26 +26,19 @@ move it to a desired pose.
 // angular_rate_gain: {x: 0.4, y: 0.52, z: 0.025}
 using namespace std;
 
-void positionCallback(const geometry_msgs::PointStamped::ConstPtr &msg);
-void writeFile(vector<float> &vec, const string &name)
-{
-	ofstream myfile;
-	myfile.open(name);
-	for (int i = 0; i < vec.size(); i++)
-		myfile << vec[i] << endl;
-	myfile.close();
-}
+void poseCallback(const geometry_msgs::Pose::ConstPtr &msg);
+void writeFile(vector<float> &vec, const string &name);
 
 // void writeMatrix(Mat &mat, const string &name);
 geometry_msgs::PointStamped pos_msg;
-
+double oYaw;
 
 /* Main function */
 int main(int argc, char **argv)
 {
 
 	/***************************************************************************************** INIT */
-	ros::init(argc, argv, "placing");
+	ros::init(argc, argv, "placing_iris");
 	ros::NodeHandle nh;
 
 	// if (argc < 2)
@@ -54,7 +48,7 @@ int main(int argc, char **argv)
 	// string name("iris");
 	string publish("/command/trajectory");
 	// string subscribe("/ground_truth/position");
-	string subscribe("/ground_truth/position");
+	string subscribe("/ground_truth/pose");
 	string topic_pub = slash + name + publish;
 	string topic_sub = slash + name + subscribe;
 
@@ -63,8 +57,9 @@ int main(int argc, char **argv)
 
 	/************************************************************* CREATING PUBLISHER AND SUBSCRIBER*/
 	ros::Publisher pos_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>(topic_pub, 1);
-	ros::Subscriber pos_sub = nh.subscribe<geometry_msgs::PointStamped>(topic_sub, 1, positionCallback);
-	ros::Rate rate(50);
+	ros::Subscriber pos_sub = nh.subscribe<geometry_msgs::Pose>(topic_sub, 1, poseCallback, ros::TransportHints().tcpNoDelay());
+	/* ros::Subscriber pos_sub = nh.subscribe<geometry_msgs::PointStamped>(topic_sub, 1, positionCallback); */
+	ros::Rate rate(20);
 
 	/************************************************************* DEFINING THE POSE */
 	std::random_device rd;														 // obtain a random number from hardware
@@ -78,7 +73,7 @@ int main(int argc, char **argv)
 	Y = argc > 3 ? atof(argv[3]) : disXY(gen);		// if y coordinate has been given
 	Z = argc > 4 ? atof(argv[4]) : disZ(gen);			// if z coordinate has been given
 	Yaw = argc > 5 ? atof(argv[5]) : disYaw(gen); // if yaw has been given
-	
+
 	vector<float> error_vec;
 	vector<float> x;
 	vector<float> y;
@@ -89,7 +84,7 @@ int main(int argc, char **argv)
 	Eigen::VectorXd position;
 	position.resize(3);
 	// position(0) = X;
-	position(0) = X-0.124;
+	position(0) = X - 0.124;
 	position(1) = Y;
 	position(2) = Z;
 
@@ -111,9 +106,17 @@ int main(int argc, char **argv)
 		// verify if it's over
 		error = (pos_msg.point.x - X) * (pos_msg.point.x - X) + (pos_msg.point.y - Y) * (pos_msg.point.y - Y) + (pos_msg.point.z - Z) * (pos_msg.point.z - Z);
 
-		std::cout << "Error: " << error << std::endl;
+		/* std::cout << "Error: " << error << std::endl;
 		std::cout << "=> X: " << pos_msg.point.x << " Y: " << pos_msg.point.y << " Z: " << pos_msg.point.z << std::endl;
 		std::cout << ">> X: " << X << " Y: " << Y << " Z: " << Z << std::endl
+							<< std::endl; */
+
+		std::cout << "COORDINATES || DESIRED -> REAL -> ERROR" << std::endl;
+		std::cout << "X || " << X << " -> " << pos_msg.point.x << " -> " << X - pos_msg.point.x << std::endl;
+		std::cout << "Y || " << Y << " -> " << pos_msg.point.y << " -> " << Y - pos_msg.point.y << std::endl;
+		std::cout << "Z || " << Z << " -> " << pos_msg.point.z << " -> " << Z - pos_msg.point.z << std::endl;
+		std::cout << "Yaw || " << Yaw << " -> " << oYaw << " -> " << Yaw - oYaw << std::endl;
+		std::cout << "Error global: " << error << std::endl
 							<< std::endl;
 
 		error_vec.push_back(error);
@@ -125,18 +128,12 @@ int main(int argc, char **argv)
 		// cout << pos_msg.orientation.x << endl;
 
 		if (error < 0.01 || conteo++ > 250)
+		{
 			break;
+		}
 
 		rate.sleep();
 	}
-
-	std::cout << "Pose desired of the drone ==> " << endl
-						<< "X: " << X << ", Y: " << Y << ", Z: " << Z << ", Yaw: " << Yaw << endl;
-
-	std::cout << "Real pose of the drone <<== " << endl
-						<< "X: " << pos_msg.point.x << ", Y: " << pos_msg.point.y << ", Z: " << pos_msg.point.z << ", Yaw: " << Yaw << endl;
-
-	std::cout << "Error: " << error << std::endl;
 
 	writeFile(error_vec, "error.txt");
 	writeFile(x, "x.txt");
@@ -144,6 +141,20 @@ int main(int argc, char **argv)
 	writeFile(z, "z.txt");
 	writeFile(yaw, "yaw.txt");
 	writeFile(params, "params.txt");
+
+	/* std::cout << "Pose desired of the drone ==> " << endl
+						<< "X: " << X << ", Y: " << Y << ", Z: " << Z << ", Yaw: " << Yaw << endl;
+
+	std::cout << "Real pose of the drone <<== " << endl
+						<< "X: " << pos_msg.point.x << ", Y: " << pos_msg.point.y << ", Z: " << pos_msg.point.z << ", Yaw: " << Yaw << endl; */
+
+	std::cout << "COORDINATES || DESIRED -> REAL -> ERROR" << std::endl;
+	std::cout << "X || " << X << " -> " << pos_msg.point.x << " -> " << X - pos_msg.point.x << std::endl;
+	std::cout << "Y || " << Y << " -> " << pos_msg.point.y << " -> " << Y - pos_msg.point.y << std::endl;
+	std::cout << "Z || " << Z << " -> " << pos_msg.point.z << " -> " << Z - pos_msg.point.z << std::endl;
+	std::cout << "Yaw || " << Yaw << " -> " << oYaw << " -> " << Yaw - oYaw << std::endl;
+	std::cout << "Error global: " << error << std::endl
+						<< std::endl;
 
 	return 0;
 }
@@ -153,15 +164,23 @@ int main(int argc, char **argv)
 	description: gets the position of the drone and assigns it to the variable point_msg.
 	params: ptr to msg.
 */
-void positionCallback(const geometry_msgs::PointStamped::ConstPtr &msg)
+void poseCallback(const geometry_msgs::Pose::ConstPtr &msg)
 {
-	pos_msg.point.x = msg->point.x;
-	pos_msg.point.y = msg->point.y;
-	pos_msg.point.z = msg->point.z;
+	pos_msg.point.x = msg->position.x;
+	pos_msg.point.y = msg->position.y;
+	pos_msg.point.z = msg->position.z;
 
-	std::cout << "P: " << msg->point.x << " - " << msg->point.y << " - " << msg->point.z << std::endl;
+	tf::Quaternion q(msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
+	// Creatring rotation matrix ffrom quaternion
+	tf::Matrix3x3 mat(q);
+	// obtaining euler angles
+	double roll, pitch, yaw;
+	mat.getEulerYPR(yaw, pitch, roll);
+
+	oYaw = yaw;
+
+	/* std::cout << "P: " << msg->point.x << " - " << msg->point.y << " - " << msg->point.z << std::endl; */
 }
-
 
 // void writeMatrix(cv::Mat &mat, const string &name)
 // {
@@ -177,3 +196,12 @@ void positionCallback(const geometry_msgs::PointStamped::ConstPtr &msg)
 // 	}
 // 	myfile.close();
 // }
+
+void writeFile(vector<float> &vec, const string &name)
+{
+	ofstream myfile;
+	myfile.open(name);
+	for (int i = 0; i < vec.size(); i++)
+		myfile << vec[i] << endl;
+	myfile.close();
+}
