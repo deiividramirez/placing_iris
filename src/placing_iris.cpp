@@ -21,15 +21,12 @@ move it to a desired pose.
 #include <stdlib.h>
 #include <iostream>
 #include <opencv2/core.hpp>
-// # Roll pitch yawrate thrust controller parameters
-// attitude_gain: {x: 2, y: 3, z: 0.035}
-// angular_rate_gain: {x: 0.4, y: 0.52, z: 0.025}
+
 using namespace std;
 
 void poseCallback(const geometry_msgs::Pose::ConstPtr &msg);
 void writeFile(vector<float> &vec, const string &name);
 
-// void writeMatrix(Mat &mat, const string &name);
 geometry_msgs::PointStamped pos_msg;
 double oYaw;
 
@@ -135,12 +132,12 @@ int main(int argc, char **argv)
 		rate.sleep();
 	}
 
-	writeFile(error_vec, "error.txt");
-	writeFile(x, "x.txt");
-	writeFile(y, "y.txt");
-	writeFile(z, "z.txt");
-	writeFile(yaw, "yaw.txt");
-	writeFile(params, "params.txt");
+	writeFile(error_vec, "placing_iris_error.txt");
+	writeFile(x, "placing_iris_x.txt");
+	writeFile(y, "placing_iris_y.txt");
+	writeFile(z, "placing_iris_z.txt");
+	writeFile(yaw, "placing_iris_yaw.txt");
+	writeFile(params, "placing_iris_params.txt");
 
 	/* std::cout << "Pose desired of the drone ==> " << endl
 						<< "X: " << X << ", Y: " << Y << ", Z: " << Z << ", Yaw: " << Yaw << endl;

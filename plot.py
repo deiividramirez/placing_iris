@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import sys
 
-error = np.loadtxt('error.txt')[1:]
-x = np.loadtxt('x.txt')[1:]
-y = np.loadtxt('y.txt')[1:]
-z = np.loadtxt('z.txt')[1:]
-yaw = np.loadtxt('yaw.txt')[1:]
-params = np.loadtxt('params.txt')
+error = np.loadtxt('placing_iris_error.txt')[1:]
+x = np.loadtxt('placing_iris_x.txt')[1:]
+y = np.loadtxt('placing_iris_y.txt')[1:]
+z = np.loadtxt('placing_iris_z.txt')[1:]
+yaw = np.loadtxt('placing_iris_yaw.txt')[1:]
+params = np.loadtxt('placing_iris_params.txt')
 
 
 labels = ["", "x_d", "y_d", "z_d", "yaw_d"]
