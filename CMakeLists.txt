@@ -203,3 +203,6 @@ include_directories(
 
 add_executable(placing_iris src/placing_iris.cpp)
 target_link_libraries(placing_iris ${catkin_LIBRARIES})
+
+SET(CATKIN_WORSKPACE "$ENV{HOME}/catkin_ws")
+target_compile_definitions(placing_iris PUBLIC WORKSPACE="${CATKIN_WORSKPACE}")
