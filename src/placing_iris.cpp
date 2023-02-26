@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	Yaw = argc > 5 ? atof(argv[5]) : disYaw(gen); // if yaw has been given
 
 	vector<float> params = {X, Y, Z, Yaw};
-	writeFile(params, workspace + "/placing_iris_params.txt");
+	writeFile(params, workspace + "/src/placing_iris/placing_iris_params.txt");
 
 	desired.resize(3);
 	// desired(0) = X;
@@ -171,11 +171,11 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 
 	if (error < 0.01 || conteo++ > 250)
 	{
-		writeFile(error_vec, workspace + "/placing_iris_error.txt");
-		writeFile(x, workspace + "/placing_iris_x.txt");
-		writeFile(y, workspace + "/placing_iris_y.txt");
-		writeFile(z, workspace + "/placing_iris_z.txt");
-		writeFile(yaw, workspace + "/placing_iris_yaw.txt");
+		writeFile(error_vec, workspace + "/src/placing_iris/placing_iris_error.txt");
+		writeFile(x, workspace + "/src/placing_iris/placing_iris_x.txt");
+		writeFile(y, workspace + "/src/placing_iris/placing_iris_y.txt");
+		writeFile(z, workspace + "/src/placing_iris/placing_iris_z.txt");
+		writeFile(yaw, workspace + "/src/placing_iris/placing_iris_yaw.txt");
 
 		/* std::cout << "Pose desired of the drone ==> " << endl
 							<< "X: " << X << ", Y: " << Y << ", Z: " << Z << ", Yaw: " << Yaw << endl;
