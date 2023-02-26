@@ -132,10 +132,7 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 	Eigen::Vector3d error_pos = desired - actual_pos;
 	error = error_pos.norm() - 0.127794;
 
-	cout << "error: " << error << endl;
-	cout << "error_pos: " << error_pos << endl;
-
-	if (error > 2)
+	if (error > 1)
 	{
 		int i = (int) ((error + 1)/2);
 		// for (int index = 1; index <= i; index++)
