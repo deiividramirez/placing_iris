@@ -137,10 +137,12 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 
 	if (error > 2)
 	{
-		int i = (int) (error + 1)/2;
-		Eigen::Vector3d position_temp = (1-1.0/i)*actual_pos + (1.0/i)*desired;
-		position_temp(0) = position_temp(0);
+		int i = (int) ((error + 1)/2);
+		// for (int index = 1; index <= i; index++)
+		// {
+		Eigen::Vector3d position_temp = (1.0-1.0/error)*actual_pos + (1.0/error)*desired;
 		mav_msgs::msgMultiDofJointTrajectoryFromPositionYaw(position_temp, Yaw, &msg);
+		// }
 	}
 	else
 	{
