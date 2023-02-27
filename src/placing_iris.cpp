@@ -168,7 +168,7 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 	z.push_back(pos_msg.point.z);
 	yaw.push_back(oYaw);
 
-	if (error < 0.01 || conteo++ > 250)
+	if (error < 0.01 || conteo++ > 500)
 	{
 		writeFile(error_vec, workspace + "/src/placing_iris/placing_iris_error.txt");
 		writeFile(x, workspace + "/src/placing_iris/placing_iris_x.txt");
