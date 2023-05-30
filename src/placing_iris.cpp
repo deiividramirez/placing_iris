@@ -44,6 +44,7 @@ vector<float> yaw;
 Eigen::VectorXd desired, actual_pos;
 float X, Y, Z, Yaw, error;
 int conteo = 0;
+string name;
 
 /* Main function */
 int main(int argc, char **argv)
@@ -54,7 +55,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 
 	string slash("/");
-	string name(argv[1]);
+	name = argv[1];
 	string publish("/command/trajectory");
 	// string subscribe("/ground_truth/desired");
 	string subscribe("/ground_truth/pose");
@@ -86,8 +87,7 @@ int main(int argc, char **argv)
 	writeFile(params, workspace + "/src/placing_iris/placing_iris_params.txt");
 
 	desired.resize(3);
-	// desired(0) = X;
-	desired(0) = (X - 0.127794);
+	desired(0) = X;
 	desired(1) = Y;
 	desired(2) = Z;
 
@@ -130,14 +130,21 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 	msg.header.stamp = ros::Time::now();
 
 	Eigen::Vector3d error_pos = desired - actual_pos;
-	error = error_pos.norm() - 0.127794;
+	if (name == "iris" || name == "iris_1" || name == "iris_2" || name == "iris_3" || name == "iris_4" || name == "iris_5")
+	{
+		error = error_pos.norm() - 0.127794;
+	}
+	else
+	{
+		error = error_pos.norm();
+	}
 
 	if (error > 1)
 	{
-		int i = (int) ((error + 1)/2);
+		int i = (int)((error + 1) / 2);
 		// for (int index = 1; index <= i; index++)
 		// {
-		Eigen::Vector3d position_temp = (1.0-1.0/error)*actual_pos + (1.0/error)*desired;
+		Eigen::Vector3d position_temp = (1.0 - 1.0 / error) * actual_pos + (1.0 / error) * desired;
 		mav_msgs::msgMultiDofJointTrajectoryFromPositionYaw(position_temp, Yaw, &msg);
 		// }
 	}
