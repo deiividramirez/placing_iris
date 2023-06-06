@@ -134,6 +134,10 @@ void poseCallback(const geometry_msgs::Pose::ConstPtr &UAV)
 	{
 		error = error_pos.norm() - 0.127794;
 	}
+	else if (name == "bebop2" || name == "bebop2_1" || name == "bebop2_2" || name == "bebop2_3" || name == "bebop2_4" || name == "bebop2_5")
+	{
+		error = error_pos.norm() - 0.108006;
+	}
 	else
 	{
 		error = error_pos.norm();
